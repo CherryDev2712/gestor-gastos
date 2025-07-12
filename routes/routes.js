@@ -4,7 +4,7 @@ const router = express.Router();
 
 // Ruta para la página de inicio
 router.get('/', (req, res) => {
-  res.render('inicio', {
+  res.render('gestor-gastos', {
     pagina: 'Inicio',
     titulo: 'Dash board | Inicio', // Título dinámico
   });
