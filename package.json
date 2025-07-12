@@ -1,0 +1,26 @@
+{
+  "name": "gestor-gastos",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "dev": "npm i && nodemon server.js",
+    "start": "node server.js"
+  },
+  "type": "module",
+  "author": "cherryDev",
+  "license": "ISC",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.3",
+    "dotenv": "^16.4.7",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0",
+    "nodemon": "^3.1.9",
+    "prettier": "^3.2.5"
+  }
+}
