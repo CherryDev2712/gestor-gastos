@@ -337,3 +337,6 @@ img {
   .dropdown-divider {
     border-top: 1px solid #ddd;
   }
+  .modal-backdrop {
+    display: none;
+  }

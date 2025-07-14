@@ -1,19 +1,7 @@
 <!DOCTYPE html>
 <html lang="es" data-bs-theme="dark">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Gastos</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <%- include('load/index.ejs') %>
 
-    <!-- css -->
-    <link rel="stylesheet" href="/css/gestor-gastos.css">
-</head>
 <body>
     <br>
     <br>
@@ -61,15 +49,19 @@
             <!-- Barra de progreso (opcional) -->
             <div class="card mb-4">
                 <div class="card-body">
-                    <h5 class="card-title">Presupuesto Mensual</h5>
+                    <h5 class="card-title">Presupuesto <span id="periodoPresupuestoLabel">Mensual</span></h5>
                     <div class="d-flex justify-content-between mb-2">
                         <span>Gastado: <span id="gastadoPresupuesto">$0.00</span></span>
                         <span>
-    Disponible: <span id="disponiblePresupuesto">$0.00</span>
-    <button class="btn btn-outline-primary btn-sm ms-2" id="btnEditarPresupuesto" data-bs-toggle="modal" data-bs-target="#modalPresupuesto">
-        <i class="bi bi-pencil"></i>
-    </button>
-</span>
+                            Disponible: <span id="disponiblePresupuesto">$0.00</span>
+                            <button class="btn btn-outline-primary btn-sm ms-2" id="btnEditarPresupuesto" data-bs-toggle="modal" data-bs-target="#modalPresupuesto">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                        </span>
+                    </div>
+                    <div id="sobregiroPresupuestoContainer" style="display: none; color: var(--accent-danger); font-weight: bold;">
+                        <span>Sobregiro: </span>
+                        <span id="sobregiroPresupuesto">$0.00</span>
                     </div>
                     <div class="progress">
                         <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
@@ -77,69 +69,109 @@
                 </div>
             </div>
 
+            <!-- Botón para iniciar una nueva orden -->
+            <div class="text-center mb-4" id="contenedorBtnNuevaOrden">
+                <button class="btn btn-lg btn-success" id="btnNuevaOrden">
+                    <i class="bi bi-plus-circle-dotted"></i> Crear Nueva Orden de Gastos
+                </button>
+            </div>
+
+            <!-- Área de trabajo para la orden activa (oculta por defecto) -->
+            <div id="areaDeTrabajo" style="display: none;">
+                <!-- Datos de la Orden Actual -->
+                <div class="card form-card p-4 mb-4">
+                    <h4 class="mb-3">Detalles de la Orden</h4>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="nombreOrden" class="form-label">Orden a nombre de:</label>
+                            <input type="text" class="form-control" id="nombreOrden" placeholder="Ingresa tu nombre">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">ID de Orden:</label>
+                            <p class="form-control-plaintext" id="idOrden"></p>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Fecha de Orden:</label>
+                            <p class="form-control-plaintext" id="fechaOrden"></p>
+                        </div>
+                    </div>
+                </div>
+
             <!-- Formulario para ingresar los datos -->
             <div class="card form-card p-4 mb-4">
                 <div class="row g-3">
-                    <div class="form-controll">
+                    <!-- Nuevo select para categoría -->
+                    <div class="form-group mb-3">
+                        <label class="form-label">¿Qué tipo de gasto quieres agregar?</label>
+                        <select class="form-select" id="categoriaGasto">
+                            <option value="comida">Comida</option>
+                            <option value="insumo">Insumo</option>
+                            <option value="servicio">Servicio</option>
+                        </select>
+                    </div>
+                    <!-- Campos generales -->
+                    <div id="camposGenerales">
                         <div class="form-group">
                             <div class="form-item">
                                 <label class="form-label">Tipo de Gasto</label>
-                                <select class="form-select" id="tipoGasto" onchange="guardarCampos()">
+                                <select class="form-select" id="tipoGasto">
                                     <option value="fijo casa">Fijo Casa</option>
                                     <option value="variable negocio">Variable negocio</option>
                                     <option value="deuda">Deuda</option>
                                 </select>
                             </div>
-                        
-                            <div class="form-item">
-                                <label class="form-label">Concepto de Gasto</label>
-                                <select class="form-select" id="conceptoGasto" onchange="guardarCampos()">
-                                    <option selected disabled value>Concepto Gasto...</option>
-                                    <option value="comida">comida</option>
-                                    <option value="insumo">insumos</option>
-                                    <option value="servicio">servicios</option>
-                                </select>
-                            </div>
+
                         </div>
-                    
                         <div class="form-group">
                             <div class="form-item">
                                 <label class="form-label">Establecimiento</label>
-                                <input type="text" class="form-control" id="establecimiento" placeholder="Ej: Supermercado X" onchange="guardarCampos()">
+                                <input type="text" class="form-control" id="establecimiento" placeholder="Ej: Supermercado X">
                             </div>
-                        
                             <div class="form-item">
                                 <label class="form-label">Fecha</label>
                                 <input type="date" class="form-control" id="fechaGasto" value="">
                             </div>
                         </div>
                     </div>
-                    <hr>
-                    <div class="input-form">
-                        <div class="col-md-3">
-                            <label class="form-label">Producto</label>
-                            <input type="text" class="form-control" id="nombreProducto" placeholder="Ej: Arroz, Servicio de luz">
+                    <!-- Campos para productos, solo si NO es servicio -->
+                    <div id="camposProducto">
+                        <hr>
+                        <div class="input-form">
+                            <div class="col-md-3">
+                                <label class="form-label">Producto</label>
+                                <input type="text" class="form-control" id="nombreProducto" placeholder="Ej: Arroz, Servicio de luz">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Unidades</label>
+                                <input type="number" class="form-control" id="unidades" oninput="calcularMontoTotal()" min="1" value="1">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Medida</label>
+                                <select class="form-control" id="medidaUnidad">
+                                    <option value="" disabled>*medida de unidad*</option>
+                                    <option value="litros">litros</option>
+                                    <option value="Kilos">kilos</option>
+                                    <option value="unidades">unidades</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Precio x Unidad</label>
+                                <input type="number" class="form-control" id="precioUnidad" step="0.01" oninput="calcularMontoTotal()" min="0">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Monto Total</label>
+                                <input type="number" class="form-control" id="montoTotal" step="0.01" readonly>
+                            </div>
                         </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Unidades</label>
-                            <input type="number" class="form-control" id="unidades" oninput="calcularMontoTotal()" min="1" value="1">
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Medida</label>
-                            <select class="form-control" id="medidaUnidad">
-                                <option value="" disabled>*medida de unidad*</option>
-                                <option value="litros">litros</option>
-                                <option value="Kilos">kilos</option>
-                                <option value="unidades">unidades</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Precio x Unidad</label>
-                            <input type="number" class="form-control" id="precioUnidad" step="0.01" oninput="calcularMontoTotal()" min="0">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Monto Total</label>
-                            <input type="number" class="form-control" id="montoTotal" step="0.01" readonly>
+                    </div>
+                    <!-- Campos para servicio, solo si ES servicio -->
+                    <div id="camposServicio" style="display:none;">
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label">Monto del servicio</label>
+                                <input type="number" class="form-control" id="montoDeuda" min="0" placeholder="Ej: 1200">
+                            </div>
                         </div>
                     </div>
                     <div class="col-12 text-center mt-3">
@@ -156,7 +188,7 @@
                     <div class="row g-3">
                         <div class="col-md-4">
                             <label class="form-label">Buscar</label>
-                            <input type="text" class="form-control" id="buscarGasto" placeholder="Buscar por nombre o establecimiento..." oninput="filtrarTabla()">
+                            <input type="text" class="form-control" id="buscarGasto" placeholder="Buscar por establecimiento..." oninput="filtrarTabla()">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Filtrar por tipo</label>
@@ -206,13 +238,84 @@
 
             <!-- Botones para reiniciar y enviar la tabla -->
             <div class="text-center mt-3 mb-5">
-                <button class="btn btn-danger me-2" onclick="confirmarReinicioTabla()" data-bs-toggle="tooltip" title="Elimina todos los gastos registrados">
-                    <i class="bi bi-trash"></i> Reiniciar Tabla
+                <button class="btn btn-danger me-2" id="btnCancelarOrden" data-bs-toggle="tooltip" title="Cancela la orden actual y descarta los cambios">
+                    <i class="bi bi-x-circle"></i> Cancelar Orden
                 </button>
-                <button class="btn btn-success me-2" type="submit" onclick="enviarTabla()" data-bs-toggle="tooltip" title="Guarda los gastos en el sistema">
-                    <i class="bi bi-save"></i> Guardar Gastos
+                <button class="btn btn-success me-2" id="btnFinalizarOrden" data-bs-toggle="tooltip" title="Guarda la orden completa en el sistema">
+                    <i class="bi bi-check-circle"></i> Finalizar y Guardar Orden
                 </button>
             </div>
+
+            </div> <!-- Fin de areaDeTrabajo -->
+
+
+        </div>
+        <hr>
+
+        <!-- Historial de Órdenes Guardadas -->
+        <div class="container mt-5">
+            <h2 class="text-center mb-4"><i class="bi bi-archive"></i> Historial de Órdenes</h2>
+            <div class="table-container">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped table-hover" id="tablaOrdenes">
+                        <thead class="table-primary">
+                            <tr>
+                                <th>ID de Orden</th>
+                                <th>Nombre</th>
+                                <th>Fecha</th>
+                                <th>Total Gastado</th>
+                                <th>Nº de Artículos</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cuerpoTablaOrdenes">
+                            <!-- Las órdenes se agregarán aquí dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para ver detalles de la orden -->
+        <div class="modal fade" id="modalDetallesOrden" tabindex="-1" aria-labelledby="modalDetallesOrdenLabel" aria-hidden="true">
+          <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="modalDetallesOrdenLabel">Detalles de la Orden</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+              </div>
+              <div class="modal-body">
+                <div class="mb-4 p-3 bg-dark rounded">
+                    <p class="mb-1"><strong>ID de Orden:</strong> <span id="detalleOrdenId"></span></p>
+                    <p class="mb-1"><strong>A nombre de:</strong> <span id="detalleOrdenNombre"></span></p>
+                    <p class="mb-1"><strong>Fecha de la Orden:</strong> <span id="detalleOrdenFecha"></span></p>
+                    <p class="mb-0"><strong>Total de la Orden:</strong> <span id="detalleOrdenTotal" class="fw-bold fs-5"></span></p>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead class="table-primary">
+                            <tr>
+                                <th>Tipo Gasto</th>
+                                <th>Concepto</th>
+                                <th>Establecimiento</th>
+                                <th>Producto/Servicio</th>
+                                <th>Unidades</th>
+                                <th>Medida</th>
+                                <th>Precio Unitario</th>
+                                <th>Monto Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cuerpoTablaDetallesOrden">
+                            <!-- Los gastos de la orden se agregarán aquí -->
+                        </tbody>
+                    </table>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+              </div>
+            </div>
+          </div>
         </div>
         <hr>
         
@@ -307,8 +410,19 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <div class="modal-body">
-        <label for="inputPresupuesto" class="form-label">¿Cuál es tu presupuesto mensual?</label>
-        <input type="number" min="0" class="form-control" id="inputPresupuesto" placeholder="Ej: 5000">
+        <div class="mb-3">
+          <label for="inputPresupuesto" class="form-label">Monto del Presupuesto</label>
+          <input type="number" min="0" class="form-control" id="inputPresupuesto" placeholder="Ej: 5000">
+        </div>
+        <div class="mb-3">
+          <label for="selectPeriodoPresupuesto" class="form-label">Período del Presupuesto</label>
+          <select id="selectPeriodoPresupuesto" class="form-select">
+            <option value="diario">Diario</option>
+            <option value="semanal">Semanal</option>
+            <option value="mensual" selected>Mensual</option>
+            <option value="anual">Anual</option>
+          </select>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
