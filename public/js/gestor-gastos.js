@@ -253,10 +253,22 @@ function actualizarResumen() {
     }
     
     // Actualizar totales de la orden actual
-    document.getElementById('totalGastado').textContent = `$${totalOrden.toFixed(2)}`;
-    document.getElementById('totalFijos').textContent = `$${fijosOrden.toFixed(2)}`;
-    document.getElementById('totalVariables').textContent = `$${variablesOrden.toFixed(2)}`;
-    document.getElementById('totalDeudas').textContent = `$${deudasOrden.toFixed(2)}`;
+    const totalGastadoElement = document.getElementById('totalGastado');
+    if (totalGastadoElement) {
+ totalGastadoElement.textContent = `$${totalOrden.toFixed(2)}`;
+    }
+ const totalFijosElement = document.getElementById('totalFijos');
+ if (totalFijosElement) {
+ totalFijosElement.textContent = `$${fijosOrden.toFixed(2)}`;
+    }
+ const totalVariablesElement = document.getElementById('totalVariables');
+ if (totalVariablesElement) {
+ totalVariablesElement.textContent = `$${variablesOrden.toFixed(2)}`;
+    }
+ const totalDeudasElement = document.getElementById('totalDeudas');
+ if (totalDeudasElement) {
+ totalDeudasElement.textContent = `$${deudasOrden.toFixed(2)}`;
+    }
 
     // --- LÓGICA DE LA BARRA DE PROGRESO ---
     // 1. Recolectar todos los gastos de todas las órdenes guardadas
@@ -294,17 +306,25 @@ function actualizarResumen() {
     const sobregiroValor = document.getElementById('sobregiroPresupuesto');
     const periodoLabel = document.getElementById('periodoPresupuestoLabel');
     
-    periodoLabel.textContent = presupuesto.periodo.charAt(0).toUpperCase() + presupuesto.periodo.slice(1);
+    if (periodoLabel) {
+ periodoLabel.textContent = presupuesto.periodo.charAt(0).toUpperCase() + presupuesto.periodo.slice(1);
+    }
 
     if (disponible >= 0) {
         // Aún hay presupuesto
-        document.getElementById('disponiblePresupuesto').textContent = `$${disponible.toFixed(2)}`;
-        sobregiroContainer.style.display = 'none';
+        const disponiblePresupuestoElement = document.getElementById('disponiblePresupuesto');
+ if (disponiblePresupuestoElement) {
+ disponiblePresupuestoElement.textContent = `$${disponible.toFixed(2)}`;
+        }
+ if (sobregiroContainer) {
+ sobregiroContainer.style.display = 'none';
+        }
     } else {
         // Se ha excedido el presupuesto
-        document.getElementById('disponiblePresupuesto').textContent = `$0.00`;
-        sobregiroValor.textContent = `$${Math.abs(disponible).toFixed(2)}`;
-        sobregiroContainer.style.display = 'block';
+        const disponiblePresupuestoElement = document.getElementById('disponiblePresupuesto');
+ if (disponiblePresupuestoElement) disponiblePresupuestoElement.textContent = `$0.00`;
+ if (sobregiroValor) sobregiroValor.textContent = `$${Math.abs(disponible).toFixed(2)}`;
+ if (sobregiroContainer) sobregiroContainer.style.display = 'block';
 
         if (!alertaPresupuestoMostrada && presupuesto.monto > 0) {
             console.log("[ALERTA] Presupuesto excedido.");
@@ -319,19 +339,26 @@ function actualizarResumen() {
     }
 
     const porcentaje = presupuesto.monto > 0 ? Math.min((totalGastadoEnPeriodo / presupuesto.monto) * 100, 100) : 0;
-    document.getElementById('progressBar').style.width = `${porcentaje}%`;
-    document.getElementById('gastadoPresupuesto').textContent = `$${totalGastadoEnPeriodo.toFixed(2)}`;
+    const progressBarElement = document.getElementById('progressBar');
+    if (progressBarElement) {
+ progressBarElement.style.width = `${porcentaje}%`;
+    }
+    
+    const gastadoPresupuestoElement = document.getElementById('gastadoPresupuesto');
+    if (gastadoPresupuestoElement) {
+ gastadoPresupuestoElement.textContent = `$${totalGastadoEnPeriodo.toFixed(2)}`;
+    }
     
     // Cambiar color de la barra según el porcentaje
-    const progressBar = document.getElementById('progressBar');
-    progressBar.classList.remove('bg-success', 'bg-warning', 'bg-danger');
-    
+    if (progressBarElement) {
+ progressBarElement.classList.remove('bg-success', 'bg-warning', 'bg-danger');
     if (porcentaje < 50) {
         progressBar.classList.add('bg-success');
     } else if (porcentaje < 80) {
         progressBar.classList.add('bg-warning');
     } else {
         progressBar.classList.add('bg-danger');
+    }
     }
 }
 
@@ -583,87 +610,28 @@ document.addEventListener('click', function(e) {
 // Presupuesto editable
 function cargarPresupuesto() {
     console.log("[EVENTO] cargarPresupuesto: Cargando presupuesto desde localStorage.");
-    const guardado = localStorage.getItem('presupuesto');
-    if (guardado !== null) {
-        presupuesto = JSON.parse(guardado);
-        console.log("[ÉXITO] Presupuesto cargado:", presupuesto);
-    } else {
-        console.log("[INFO] No se encontró presupuesto guardado, usando valores por defecto.");
-    }
+    presupuesto = JSON.parse(localStorage.getItem('presupuesto')) || { monto: 0, periodo: 'mensual' };
+    console.log("[INFO] Presupuesto cargado/inicializado:", presupuesto);
 }
 
 function guardarPresupuesto() {
     const nuevoMonto = parseFloat(document.getElementById('inputPresupuesto').value);
     const nuevoPeriodo = document.getElementById('selectPeriodoPresupuesto').value;
-
+    
     if (isNaN(nuevoMonto) || nuevoMonto <= 0) {
         mostrarError('Por favor ingresa un presupuesto válido y mayor a cero.');
         return;
     }
-
+    
     presupuesto.monto = nuevoMonto;
     presupuesto.periodo = nuevoPeriodo;
     alertaPresupuestoMostrada = false; // Reiniciar la alerta al cambiar el presupuesto
     localStorage.setItem('presupuesto', JSON.stringify(presupuesto));
-    
-    console.log("[EVENTO] guardarPresupuesto: Guardando nuevo presupuesto:", presupuesto);
-    actualizarResumen();
-
-    // Cerrar modal
-    const modal = bootstrap.Modal.getInstance(document.getElementById('modalPresupuesto'));
-    modal.hide();
-    mostrarExito('Presupuesto actualizado');
 }
 
 // Evento para abrir el modal y mostrar el valor actual
-document.getElementById('btnEditarPresupuesto').addEventListener('click', function() {
-    console.log("[EVENTO] Clic en 'Editar Presupuesto'. Abriendo modal.");
-    modalTriggerElement = this; // Guardar el elemento que abrió el modal
-    document.getElementById('inputPresupuesto').value = presupuesto.monto;
-    document.getElementById('selectPeriodoPresupuesto').value = presupuesto.periodo;
-});
-
-// Evento para guardar el presupuesto
-document.getElementById('guardarPresupuestoBtn').addEventListener('click', guardarPresupuesto);
-
-// Devolver el foco al elemento original cuando el modal se cierra para mejorar la accesibilidad
-const modalPresupuestoEl = document.getElementById('modalPresupuesto');
-if (modalPresupuestoEl) {
-    modalPresupuestoEl.addEventListener('hidden.bs.modal', () => {
-        console.log("[EVENTO] Modal de presupuesto cerrado. Devolviendo el foco si es necesario.");
-        if (modalTriggerElement) {
-            modalTriggerElement.focus();
-            modalTriggerElement = null; // Limpiar para la próxima vez
-        }
-    });
-}
-
-// Al cargar la página, cargar el presupuesto guardado
 document.addEventListener("DOMContentLoaded", function() {
-    inicializarPagina();
-
-    if (presupuesto.monto === 0) {
-        console.log("[ALERTA] El presupuesto es 0, mostrando alerta de bienvenida.");
-        Swal.fire({
-            icon: 'info',
-            title: '¡Bienvenido!',
-            text: 'Para empezar a gestionar tus gastos, por favor establece un presupuesto mensual.',
-            confirmButtonText: 'Establecer Presupuesto',
-            background: 'var(--card-bg)',
-            allowOutsideClick: false,
-            allowEscapeKey: false
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Abrir el modal para que el usuario ingrese el presupuesto
-                const modalPresupuesto = new bootstrap.Modal(document.getElementById('modalPresupuesto'));
-                modalPresupuesto.show();
-                // Poner el foco en el input cuando el modal se muestre
-                document.getElementById('modalPresupuesto').addEventListener('shown.bs.modal', function () {
-                    document.getElementById('inputPresupuesto').focus();
-                }, { once: true });
-            }
-        });
-    }
+ inicializarPagina();
 });
 
 // Mostrar/ocultar campos según categoría

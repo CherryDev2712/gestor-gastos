@@ -10,69 +10,10 @@
         <div class="container">
             <h1 class="text-center mb-4"><i class="bi bi-cash-stack"></i> Gestión de Gastos</h1>
 
-            <!-- Resumen de Gastos -->
-            <div class="row mb-4">
-                <div class="col-md-3 mb-3">
-                    <div class="card summary-card total h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">Total Gastado</h5>
-                            <h3 class="card-text" id="totalGastado">$0.00</h3>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3 mb-3">
-                    <div class="card summary-card fijo h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">Fijo Casa</h5>
-                            <h3 class="card-text" id="totalFijos">$0.00</h3>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3 mb-3">
-                    <div class="card summary-card variable h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">Variable Negocio</h5>
-                            <h3 class="card-text" id="totalVariables">$0.00</h3>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3 mb-3">
-                    <div class="card summary-card deuda h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">Deudas</h5>
-                            <h3 class="card-text" id="totalDeudas">$0.00</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Barra de progreso (opcional) -->
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title">Presupuesto <span id="periodoPresupuestoLabel">Mensual</span></h5>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Gastado: <span id="gastadoPresupuesto">$0.00</span></span>
-                        <span>
-                            Disponible: <span id="disponiblePresupuesto">$0.00</span>
-                            <button class="btn btn-outline-primary btn-sm ms-2" id="btnEditarPresupuesto" data-bs-toggle="modal" data-bs-target="#modalPresupuesto">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                        </span>
-                    </div>
-                    <div id="sobregiroPresupuestoContainer" style="display: none; color: var(--accent-danger); font-weight: bold;">
-                        <span>Sobregiro: </span>
-                        <span id="sobregiroPresupuesto">$0.00</span>
-                    </div>
-                    <div class="progress">
-                        <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Botón para iniciar una nueva orden -->
             <div class="text-center mb-4" id="contenedorBtnNuevaOrden">
                 <button class="btn btn-lg btn-success" id="btnNuevaOrden">
-                    <i class="bi bi-plus-circle-dotted"></i> Crear Nueva Orden de Gastos
+                    <i class="bi bi-plus-circle-dotted"></i> Nueva orden de gastos
                 </button>
             </div>
 
@@ -401,35 +342,7 @@
                 </div>
             </div>
         </div>
-        <!-- Modal para editar presupuesto -->
-        <div class="modal fade" id="modalPresupuesto" tabindex="-1" aria-labelledby="modalPresupuestoLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalPresupuestoLabel">Editar Presupuesto Mensual</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                <label for="inputPresupuesto" class="form-label">Monto del Presupuesto</label>
-                <input type="number" min="0" class="form-control" id="inputPresupuesto" placeholder="Ej: 5000">
-                </div>
-                <div class="mb-3">
-                <label for="selectPeriodoPresupuesto" class="form-label">Período del Presupuesto</label>
-                <select id="selectPeriodoPresupuesto" class="form-select">
-                    <option value="semanal">Semanal</option>
-                    <option value="mensual" selected>Mensual</option>
-                    <option value="anual">Anual</option>
-                </select>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="guardarPresupuestoBtn">Guardar</button>
-            </div>
-            </div>
-        </div>
-        </div>
+
         <!-- Script de Bootstrap -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script src="/js/gestor-gastos.js"></script>
