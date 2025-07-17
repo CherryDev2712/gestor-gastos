@@ -20,8 +20,6 @@ function obtenerFechaLocalISO(date = new Date()) {
 // Función para inicializar la página
 function inicializarPagina() {
     console.log("[EVENTO] inicializarPagina: La página se está inicializando.");
-    // Establecer fecha actual por defecto
-    document.getElementById('fechaGasto').valueAsDate = new Date();
     document.getElementById('fechaGastoImagen').valueAsDate = new Date();
     
     // Activar tooltips
@@ -39,11 +37,6 @@ function inicializarPagina() {
     } else {
         console.error("El botón btnGuardarTicket no fue encontrado");
     }
-    
-    // Configurar botones de orden
-    document.getElementById('btnNuevaOrden').addEventListener('click', () => { console.log("[EVENTO] Clic en 'Crear Nueva Orden'"); iniciarNuevaOrden(); });
-    document.getElementById('btnFinalizarOrden').addEventListener('click', () => { console.log("[EVENTO] Clic en 'Finalizar Orden'"); finalizarOrden(); });
-    document.getElementById('btnCancelarOrden').addEventListener('click', () => { console.log("[EVENTO] Clic en 'Cancelar Orden'"); cancelarOrden(); });
 
     // Cargar datos guardados
     cargarPresupuesto();
@@ -67,8 +60,16 @@ function calcularMontoTotal() {
 // Función para validar y agregar fila
 function validarYAgregarFila() {        
     console.log("[EVENTO] validarYAgregarFila: Iniciando validación de gasto.");
-    const categoria = document.getElementById('categoriaGasto').value;
-    if (categoria === 'servicio') {
+    
+    if (!ordenActual) {
+        mostrarError("Debes iniciar una nueva orden antes de agregar gastos.");
+        console.log("[ERROR] validarYAgregarFila: No hay orden actual para agregar gastos.");
+        return;
+    }
+
+    const conceptoGeneralOrden = document.getElementById('conceptoGastoOrden').value;
+
+    if (conceptoGeneralOrden === 'servicio') {
         // Validación para servicio
         const tipoGasto = document.getElementById("tipoGasto").value;
         const establecimiento = document.getElementById("establecimiento").value;
@@ -131,18 +132,22 @@ function validarYAgregarFila() {
 }
 
 async function agregarFila() {
+     if (!ordenActual) {
+        mostrarError("Debes iniciar una nueva orden antes de agregar gastos.");
+        return;
+    }
+
     const gasto = {
         id: Date.now().toString(),
-        tipoGasto: document.getElementById("tipoGasto").value,
-        conceptoGasto: document.getElementById("categoriaGasto").value,
-        establecimiento: document.getElementById("establecimiento").value,
+        tipoGasto: document.getElementById("tipoGastoOrden").value, // Usar el tipo de gasto de la orden
+        conceptoGasto: document.getElementById("conceptoGastoOrden").value, // Usar el concepto de gasto de la orden
         nombreProducto: document.getElementById("nombreProducto").value,
         unidades: document.getElementById("unidades").value,
         medidaUnidad: document.getElementById("medidaUnidad").value,
         precioUnidad: document.getElementById("precioUnidad").value,
-        montoTotal: document.getElementById("montoTotal").value,
-        fecha: document.getElementById("fechaGasto").value || obtenerFechaLocalISO(),
+        montoTotal: document.getElementById("montoTotal").value,        fecha: ordenActual.fecha,
     };
+    
 
     agregarFilaATabla(gasto);
     ordenActual.gastos.push(gasto);
@@ -629,25 +634,6 @@ function guardarPresupuesto() {
     localStorage.setItem('presupuesto', JSON.stringify(presupuesto));
 }
 
-// Evento para abrir el modal y mostrar el valor actual
-document.addEventListener("DOMContentLoaded", function() {
- inicializarPagina();
-});
-
-// Mostrar/ocultar campos según categoría
-document.getElementById('categoriaGasto').addEventListener('change', function() {
-    const categoria = this.value;
-    const camposProducto = document.getElementById('camposProducto');
-    const camposServicio = document.getElementById('camposServicio');
-    if (categoria === 'servicio') {
-        camposProducto.style.display = 'none';
-        camposServicio.style.display = '';
-    } else {
-        camposProducto.style.display = '';
-        camposServicio.style.display = 'none';
-    }
-});
-
 // --- NUEVAS FUNCIONES PARA GESTIÓN DE ÓRDENES ---
 
 function iniciarNuevaOrden() {
@@ -826,3 +812,13 @@ function verDetallesOrden(id) {
     const modal = new bootstrap.Modal(document.getElementById('modalDetallesOrden'));
     modal.show();
 }
+
+// Inicializar la página cuando el DOM esté completamente cargado
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("[DEBUG] DOMContentLoaded se ha disparado.");
+    inicializarPagina();
+    console.log("[DEBUG] Intentando configurar event listeners para botones de orden.");
+    document.getElementById('btnNuevaOrden').addEventListener('click', () => { console.log("[EVENTO] Clic en 'Crear Nueva Orden'"); iniciarNuevaOrden(); /* mostrarExito("Nueva orden iniciada correctamente"); */ });
+    document.getElementById('btnFinalizarOrden').addEventListener('click', () => { console.log("[EVENTO] Clic en 'Finalizar Orden'"); finalizarOrden(); /* mostrarExito("Orden finalizada correctamente"); */ });
+    document.getElementById('btnCancelarOrden').addEventListener('click', () => { console.log("[EVENTO] Clic en 'Cancelar Orden'"); cancelarOrden(); /* mostrarExito("Orden cancelada"); */ });
+});
