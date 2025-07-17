@@ -798,9 +798,6 @@ function verDetallesOrden(id) {
     document.getElementById('detalleOrdenId').textContent = orden.id;
     document.getElementById('detalleOrdenNombre').textContent = orden.nombre;
     document.getElementById('detalleOrdenFecha').textContent = orden.fecha;
-    
-    const totalOrden = orden.gastos.reduce((sum, gasto) => sum + parseFloat(gasto.montoTotal), 0);
-    document.getElementById('detalleOrdenTotal').textContent = `$${totalOrden.toFixed(2)}`;
 
     // Poblar la tabla de gastos
     const cuerpoTabla = document.getElementById('cuerpoTablaDetallesOrden');

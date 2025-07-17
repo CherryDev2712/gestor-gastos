@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es" data-bs-theme="dark">
-        <%- include('load/index.ejs') %>
+    <%- include('load/index.ejs') %>
 
 <body>
     <br>
@@ -22,64 +22,72 @@
                 <!-- Datos de la Orden Actual -->
                 <div class="card form-card p-4 mb-4">
                     <h4 class="mb-3">Detalles de la Orden</h4>
-                    <div class="row">
+                    <div class="row g-3">
                         <div class="col-md-6 mb-3">
                             <label for="nombreOrden" class="form-label">Orden a nombre de:</label>
                             <input type="text" class="form-control" id="nombreOrden" placeholder="Ingresa tu nombre">
                         </div>
-                        <div class="col-md-3 mb-3">
+                        <div class="col-md-3">
                             <label class="form-label">ID de Orden:</label>
                             <p class="form-control-plaintext" id="idOrden"></p>
                         </div>
-                        <div class="col-md-3 mb-3">
+                        <div class="col-md-3">
                             <label class="form-label">Fecha de Orden:</label>
                             <p class="form-control-plaintext" id="fechaOrden"></p>
                         </div>
+                        <div class="col-md-4">
+                            <label for="conceptoGastoOrden" class="form-label">Concepto General:</label>
+                            <select class="form-select" id="conceptoGastoOrden">
+                                <option value="comida">Comida</option>
+                                <option value="insumo">Insumo</option>
+                                <option value="servicio">Servicio</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="tipoGastoOrden" class="form-label">Tipo de Gasto:</label>
+                            <select class="form-select" id="tipoGastoOrden">
+                                <option value="Fijo casa">Fijo Casa</option>
+                                <option value="variable negocio">Variable negocio</option>
+                                <option value="deuda">Deuda</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="establecimientoOrden" class="form-label">Establecimiento:</label>
+                            <input type="text" class="form-control" id="establecimientoOrden" placeholder="Ej: Tienda">
+                        </div>
+                         <div class="col-md-4">
+                            <label for="metodoPagoOrden" class="form-label">Método de Pago:</label>
+                            <select class="form-select" id="metodoPagoOrden">
+                                <option value="efectivo">Efectivo</option>
+                                <option value="tarjeta">Tarjeta</option>
+                                <option value="transferencia">Transferencia</option>
+                            </select>
+                        </div>
+                        <div class="col-md-8">
+                            <label for="ticketOrden" class="form-label">Imagen del Ticket:</label>
+                            <input type="file" class="form-control" id="ticketOrden" accept="image/*">
+                        </div>
+                         <div class="col-md-4">
+                            <label for="montoTotalOrdenDisplay" class="form-label">Monto Total de la Orden:</label>
+                            <input type="text" class="form-control fw-bold" id="montoTotalOrdenDisplay" readonly>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="totalGastosDisplay" class="form-label">Total de Items:</label>
+                            <input type="text" class="form-control" id="totalGastosDisplay" readonly>
+                        </div>
                     </div>
-                </div>
+				</div>
 
             <!-- Formulario para ingresar los datos -->
             <div class="card form-card p-4 mb-4">
                 <div class="row g-3">
-                    <!-- Nuevo select para categoría -->
-                    <div class="form-group mb-3">
-                        <label class="form-label">¿Qué tipo de gasto quieres agregar?</label>
-                        <select class="form-select" id="categoriaGasto">
-                            <option value="comida">Comida</option>
-                            <option value="insumo">Insumo</option>
-                            <option value="servicio">Servicio</option>
-                        </select>
-                    </div>
-                    <!-- Campos generales -->
-                    <div id="camposGenerales">
-                        <div class="form-group">
-                            <div class="form-item">
-                                <label class="form-label">Tipo de Gasto</label>
-                                <select class="form-select" id="tipoGasto">
-                                    <option value="fijo casa">Fijo Casa</option>
-                                    <option value="variable negocio">Variable negocio</option>
-                                    <option value="deuda">Deuda</option>
-                                </select>
-                            </div>
 
-                        </div>
-                        <div class="form-group">
-                            <div class="form-item">
-                                <label class="form-label">Establecimiento</label>
-                                <input type="text" class="form-control" id="establecimiento" placeholder="Ej: Supermercado X">
-                            </div>
-                            <div class="form-item">
-                                <label class="form-label">Fecha</label>
-                                <input type="date" class="form-control" id="fechaGasto" value="">
-                            </div>
-                        </div>
-                    </div>
                     <!-- Campos para productos, solo si NO es servicio -->
                     <div id="camposProducto">
                         <hr>
                         <div class="input-form">
                             <div class="col-md-3">
-                                <label class="form-label">Producto</label>
+                                <label class="form-label">Nombre: </label>
                                 <input type="text" class="form-control" id="nombreProducto" placeholder="Ej: Arroz, Servicio de luz">
                             </div>
                             <div class="col-md-2">
@@ -230,7 +238,18 @@
                     <p class="mb-1"><strong>ID de Orden:</strong> <span id="detalleOrdenId"></span></p>
                     <p class="mb-1"><strong>A nombre de:</strong> <span id="detalleOrdenNombre"></span></p>
                     <p class="mb-1"><strong>Fecha de la Orden:</strong> <span id="detalleOrdenFecha"></span></p>
-                    <p class="mb-0"><strong>Total de la Orden:</strong> <span id="detalleOrdenTotal" class="fw-bold fs-5"></span></p>
+                        <div class="col-md-4">
+                            <label for="montoTotalOrdenDisplay" class="form-label form-label-sm">Monto Total de la Orden:</label>
+                            <input type="text" class="form-control form-control-sm fw-bold" id="montoTotalOrdenDisplay" readonly>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="totalGastosDisplay" class="form-label form-label-sm">Total de Items:</label>
+                            <input type="text" class="form-control form-control-sm" id="totalGastosDisplay" readonly>
+                        </div>
+                        <div class="col-md-4">
+                            <!-- Se deja un espacio o se puede añadir otro campo si es necesario -->
+                        </div>
+                    </div>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-bordered">
