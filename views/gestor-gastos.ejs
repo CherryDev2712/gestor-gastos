@@ -55,7 +55,7 @@
                             <label for="establecimientoOrden" class="form-label">Establecimiento:</label>
                             <input type="text" class="form-control" id="establecimientoOrden" placeholder="Ej: Tienda">
                         </div>
-                         <div class="col-md-4">
+                        <div class="col-md-4">
                             <label for="metodoPagoOrden" class="form-label">Método de Pago:</label>
                             <select class="form-select" id="metodoPagoOrden">
                                 <option value="efectivo">Efectivo</option>
@@ -67,7 +67,7 @@
                             <label for="ticketOrden" class="form-label">Imagen del Ticket:</label>
                             <input type="file" class="form-control" id="ticketOrden" accept="image/*">
                         </div>
-                         <div class="col-md-4">
+                        <div class="col-md-4">
                             <label for="montoTotalOrdenDisplay" class="form-label">Monto Total de la Orden:</label>
                             <input type="text" class="form-control fw-bold" id="montoTotalOrdenDisplay" readonly>
                         </div>
@@ -113,16 +113,6 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Campos para servicio, solo si ES servicio -->
-                    <div id="camposServicio" style="display:none;">
-                        <hr>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <label class="form-label">Monto del servicio</label>
-                                <input type="number" class="form-control" id="montoDeuda" min="0" placeholder="Ej: 1200">
-                            </div>
-                        </div>
-                    </div>
                     <div class="col-12 text-center mt-3">
                         <button class="btn btn-primary" onclick="validarYAgregarFila()" data-bs-toggle="tooltip" title="Agrega un nuevo gasto a la lista">
                             <i class="bi bi-plus-circle"></i> Agregar Gasto
@@ -130,37 +120,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Filtros y búsqueda -->
-            <div class="card mb-4">
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label">Buscar</label>
-                            <input type="text" class="form-control" id="buscarGasto" placeholder="Buscar por establecimiento..." oninput="filtrarTabla()">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Filtrar por tipo</label>
-                            <select class="form-select" id="filtroTipo" onchange="filtrarTabla()">
-                                <option value="">Todos los tipos</option>
-                                <option value="fijo negocio">Fijo Casa</option>
-                                <option value="variable negocio">Variable negocio</option>
-                                <option value="deuda">Deuda</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Ordenar por</label>
-                            <select class="form-select" id="ordenarPor" onchange="ordenarTabla()">
-                                <option value="fecha">Fecha (más reciente)</option>
-                                <option value="monto-asc">Monto (menor a mayor)</option>
-                                <option value="monto-desc">Monto (mayor a menor)</option>
-                                <option value="nombre">Nombre (A-Z)</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Tabla para mostrar los datos ingresados -->
             <div class="table-container">
                 <div class="table-responsive">
@@ -187,7 +146,7 @@
 
             <!-- Botones para reiniciar y enviar la tabla -->
             <div class="text-center mt-3 mb-5">
-                <button class="btn btn-danger me-2" id="btnCancelarOrden" data-bs-toggle="tooltip" title="Cancela la orden actual y descarta los cambios">
+                <button class="btn btn-danger me-2" id="btnCancelarOrden" onclick="cancelarOrden()" data-bs-toggle="tooltip" title="Cancela la orden actual y descarta los cambios">
                     <i class="bi bi-x-circle"></i> Cancelar Orden
                 </button>
                 <button class="btn btn-success me-2" id="btnFinalizarOrden" data-bs-toggle="tooltip" title="Guarda la orden completa en el sistema">
@@ -227,20 +186,20 @@
 
         <!-- Modal para ver detalles de la orden -->
         <div class="modal fade" id="modalDetallesOrden" tabindex="-1" aria-labelledby="modalDetallesOrdenLabel" aria-hidden="true">
-          <div class="modal-dialog modal-xl">
+            <div class="modal-dialog modal-xl">
             <div class="modal-content">
-              <div class="modal-header">
+                <div class="modal-header">
                 <h5 class="modal-title" id="modalDetallesOrdenLabel">Detalles de la Orden</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-              </div>
-              <div class="modal-body">
+                </div>
+                <div class="modal-body">
                 <div class="mb-4 p-3 bg-dark rounded">
                     <p class="mb-1"><strong>ID de Orden:</strong> <span id="detalleOrdenId"></span></p>
                     <p class="mb-1"><strong>A nombre de:</strong> <span id="detalleOrdenNombre"></span></p>
                     <p class="mb-1"><strong>Fecha de la Orden:</strong> <span id="detalleOrdenFecha"></span></p>
                         <div class="col-md-4">
-                            <label for="montoTotalOrdenDisplay" class="form-label form-label-sm">Monto Total de la Orden:</label>
-                            <input type="text" class="form-control form-control-sm fw-bold" id="montoTotalOrdenDisplay" readonly>
+                            <label for="montoTotalOrdenDisplayModal" class="form-label form-label-sm">Monto Total de la Orden:</label>
+                            <input type="text" class="form-control form-control-sm fw-bold" id="montoTotalOrdenDisplayModal" readonly>
                         </div>
                         <div class="col-md-4">
                             <label for="totalGastosDisplay" class="form-label form-label-sm">Total de Items:</label>
@@ -252,13 +211,14 @@
                     </div>
                 </div>
                 <div class="table-responsive">
+                    <h2 class="detallesTitle">Gastos</h2>
                     <table class="table table-bordered">
                         <thead class="table-primary">
                             <tr>
                                 <th>Tipo Gasto</th>
                                 <th>Concepto</th>
                                 <th>Establecimiento</th>
-                                <th>Producto/Servicio</th>
+                                <th>Nombre</th>
                                 <th>Unidades</th>
                                 <th>Medida</th>
                                 <th>Precio Unitario</th>
@@ -270,98 +230,15 @@
                         </tbody>
                     </table>
                 </div>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-              </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
             </div>
-          </div>
+
+            </div>
+            </div>
         </div>
         <hr>
-        
-        <!-- form para imagen -->
-        <div class="container mt-4">
-            <div class="form-container">
-    <h2 class="text-center mb-4">Registro de Tickets</h2>
-    
-    <div class="form-item">
-        <label class="form-label">Tipo de Gasto</label>
-        <select class="form-select" id="tipoGastoImagen">
-            <option value="fijo negocio">Fijo Casa</option>
-            <option value="variable negocio">Variable negocio</option>
-            <option value="deuda">Deuda</option>
-        </select>
-    </div>
-    
-    <div class="form-item">
-        <label class="form-label">Concepto de Gasto</label>
-        <select class="form-select" id="conceptoGastoImagen">
-            <option selected disabled value="">Seleccione...</option>
-            <option value="comida">comida</option>
-            <option value="insumo">insumos</option>
-            <option value="servicio">servicios</option>
-        </select>
-    </div>
-    
-    <div class="form-item">
-        <label class="form-label">Establecimiento</label>
-        <input type="text" class="form-control" id="establecimientoImagen" placeholder="Ej: Bodega">
-    </div>
-    
-    <div class="form-item">
-        <label class="form-label">Fecha</label>
-        <input type="date" class="form-control" id="fechaGastoImagen">
-    </div>
-    
-    <div class="form-item">
-        <label class="form-label">Elige una imagen</label>
-        <input type="file" class="form-control" id="imagenTicketInput" accept="image/*">
-        <small class="form-text text-muted">Toma una foto a tu ticket de compra y subelo para tenerlo registrado.</small>
-    </div>
-    
-    <button class="btn btn-success" type="button" id="btnGuardarTicket">
-        <i class="bi bi-save"></i> Guardar Ticket
-    </button>
-                
-                <!-- Tabla simplificada -->
-                <div class="table-container">
-                    <table class="table table-bordered" id="tablaTickets">
-                        <thead>
-                            <tr>
-                                <th>Tipo</th>
-                                <th>Concepto</th>
-                                <th>Establecimiento</th>
-                                <th>Fecha</th>
-                                <th>Ticket</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="ticketsPreview">
-                            <!-- Los datos se agregarán aquí dinámicamente -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal para visualizar tickets -->
-        <div class="modal fade" id="modalTicket" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Ticket de Compra</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body text-center">
-                        <img id="imagenModal" src="" class="img-fluid" alt="Ticket de compra">
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Script de Bootstrap -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script src="/js/gestor-gastos.js"></script>

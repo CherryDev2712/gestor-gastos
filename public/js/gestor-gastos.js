@@ -1,12 +1,5 @@
-// Variables globales
-let presupuesto = {
-    monto: 0,
-    periodo: 'mensual' // Opciones: diario, semanal, mensual, anual
-};
 let ordenes = [];
-let alertaPresupuestoMostrada = false;
 let ordenActual = null; // Objeto para la orden en curso
-let ticketsGuardados = [];
 let modalTriggerElement = null; // Para devolver el foco después de cerrar un modal
 
 // Helper para obtener la fecha en formato YYYY-MM-DD local
@@ -20,31 +13,14 @@ function obtenerFechaLocalISO(date = new Date()) {
 // Función para inicializar la página
 function inicializarPagina() {
     console.log("[EVENTO] inicializarPagina: La página se está inicializando.");
-    document.getElementById('fechaGastoImagen').valueAsDate = new Date();
-    
+
     // Activar tooltips
     const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
     tooltips.forEach(t => new bootstrap.Tooltip(t));
-    
-    // Configurar botón de guardar ticket
-    const btnGuardarTicket = document.getElementById('btnGuardarTicket');
-    if (btnGuardarTicket) {
-        btnGuardarTicket.addEventListener('click', function(e) {
-            e.preventDefault(); // Prevenir el comportamiento por defecto del botón
-            console.log("Botón Guardar Ticket clickeado");
-            guardarTicket();
-        });
-    } else {
-        console.error("El botón btnGuardarTicket no fue encontrado");
-    }
 
     // Cargar datos guardados
-    cargarPresupuesto();
     cargarOrdenes();
-    cargarTickets();
-    
-    // NOTA: El resumen y la tabla de gastos ahora se actualizan
-    // solo cuando hay una orden activa.
+
     // Actualizar resumen
     actualizarResumen();
 }
@@ -132,25 +108,30 @@ function validarYAgregarFila() {
 }
 
 async function agregarFila() {
-     if (!ordenActual) {
+    if (!ordenActual) {
         mostrarError("Debes iniciar una nueva orden antes de agregar gastos.");
         return;
     }
 
-    const gasto = {
-        id: Date.now().toString(),
-        tipoGasto: document.getElementById("tipoGastoOrden").value, // Usar el tipo de gasto de la orden
-        conceptoGasto: document.getElementById("conceptoGastoOrden").value, // Usar el concepto de gasto de la orden
-        nombreProducto: document.getElementById("nombreProducto").value,
-        unidades: document.getElementById("unidades").value,
-        medidaUnidad: document.getElementById("medidaUnidad").value,
-        precioUnidad: document.getElementById("precioUnidad").value,
-        montoTotal: document.getElementById("montoTotal").value,        fecha: ordenActual.fecha,
-    };
-    
+    const tipoGasto = document.getElementById("tipoGastoOrden")?.value || '';
+    const conceptoGasto = document.getElementById("conceptoGastoOrden")?.value || '';
+    const establecimiento = document.getElementById("establecimientoOrden")?.value || '';
+    const nombreProducto = document.getElementById("nombreProducto").value;
 
-    agregarFilaATabla(gasto);
+    const gasto = {
+        tipoGasto: tipoGasto,
+        conceptoGasto: conceptoGasto,
+        establecimiento: establecimiento,
+        nombreProducto: nombreProducto,
+        unidades: parseFloat(document.getElementById("unidades").value),
+        medidaUnidad: document.getElementById("medidaUnidad").value,
+        precioUnidad: parseFloat(document.getElementById("precioUnidad").value),
+        montoTotal: parseFloat(document.getElementById("montoTotal").value),
+        fecha: obtenerFechaLocalISO()
+    };
+
     ordenActual.gastos.push(gasto);
+    agregarFilaATabla(gasto);
     actualizarResumen();
     reiniciarFormulario();
     mostrarExito("Gasto agregado correctamente");
@@ -187,8 +168,6 @@ function agregarFilaATabla(gasto) {
 // Función para cargar las órdenes guardadas
 function cargarOrdenes() {
     ordenes = JSON.parse(localStorage.getItem("ordenes")) || [];
-    // Por ahora, solo las cargamos en memoria.
-    // En un futuro, aquí se podría poblar una tabla de órdenes.
     renderizarTablaOrdenes();
 }
 
@@ -238,7 +217,7 @@ function reiniciarFormulario() {
 
 // Función para actualizar el resumen de gastos
 function actualizarResumen() {
-    console.log("[EVENTO] actualizarResumen: Actualizando todos los resúmenes y la barra de progreso.");
+    console.log("[EVENTO] actualizarResumen: Actualizando todos los resúmenes.");
     
     // --- LÓGICA DE RESUMEN DE ORDEN ACTUAL ---
     let totalOrden = 0;
@@ -260,110 +239,31 @@ function actualizarResumen() {
     // Actualizar totales de la orden actual
     const totalGastadoElement = document.getElementById('totalGastado');
     if (totalGastadoElement) {
- totalGastadoElement.textContent = `$${totalOrden.toFixed(2)}`;
+        totalGastadoElement.textContent = `$${totalOrden.toFixed(2)}`;
     }
- const totalFijosElement = document.getElementById('totalFijos');
- if (totalFijosElement) {
- totalFijosElement.textContent = `$${fijosOrden.toFixed(2)}`;
+    const totalFijosElement = document.getElementById('totalFijos');
+    if (totalFijosElement) {
+        totalFijosElement.textContent = `$${fijosOrden.toFixed(2)}`;
     }
- const totalVariablesElement = document.getElementById('totalVariables');
- if (totalVariablesElement) {
- totalVariablesElement.textContent = `$${variablesOrden.toFixed(2)}`;
+    const totalVariablesElement = document.getElementById('totalVariables');
+    if (totalVariablesElement) {
+        totalVariablesElement.textContent = `$${variablesOrden.toFixed(2)}`;
     }
- const totalDeudasElement = document.getElementById('totalDeudas');
- if (totalDeudasElement) {
- totalDeudasElement.textContent = `$${deudasOrden.toFixed(2)}`;
-    }
-
-    // --- LÓGICA DE LA BARRA DE PROGRESO ---
-    // 1. Recolectar todos los gastos de todas las órdenes guardadas
-    const todosLosGastos = ordenes.flatMap(orden => orden.gastos);
-
-    // 2. Filtrar gastos según el período del presupuesto
-    const hoy = new Date();
-    const gastosDelPeriodo = todosLosGastos.filter(gasto => {
-        const fechaGasto = new Date(gasto.fecha + 'T00:00:00'); // Asegurar que la hora no afecte
-        switch (presupuesto.periodo) {
-            case 'diario':
-                return fechaGasto.toDateString() === hoy.toDateString();
-            case 'semanal':
-                const inicioSemana = new Date(hoy);
-                inicioSemana.setDate(hoy.getDate() - hoy.getDay());
-                inicioSemana.setHours(0, 0, 0, 0);
-                const finSemana = new Date(inicioSemana);
-                finSemana.setDate(inicioSemana.getDate() + 6);
-                finSemana.setHours(23, 59, 59, 999);
-                return fechaGasto >= inicioSemana && fechaGasto <= finSemana;
-            case 'mensual':
-                return fechaGasto.getMonth() === hoy.getMonth() && fechaGasto.getFullYear() === hoy.getFullYear();
-            case 'anual':
-                return fechaGasto.getFullYear() === hoy.getFullYear();
-            default:
-                return true;
-        }
-    });
-
-    const totalGastadoEnPeriodo = gastosDelPeriodo.reduce((sum, gasto) => sum + parseFloat(gasto.montoTotal), 0);
-
-    // 3. Actualizar la UI del presupuesto
-    const disponible = presupuesto.monto - totalGastadoEnPeriodo;
-    const sobregiroContainer = document.getElementById('sobregiroPresupuestoContainer');
-    const sobregiroValor = document.getElementById('sobregiroPresupuesto');
-    const periodoLabel = document.getElementById('periodoPresupuestoLabel');
-    
-    if (periodoLabel) {
- periodoLabel.textContent = presupuesto.periodo.charAt(0).toUpperCase() + presupuesto.periodo.slice(1);
+    const totalDeudasElement = document.getElementById('totalDeudas');
+    if (totalDeudasElement) {
+        totalDeudasElement.textContent = `$${deudasOrden.toFixed(2)}`;
     }
 
-    if (disponible >= 0) {
-        // Aún hay presupuesto
-        const disponiblePresupuestoElement = document.getElementById('disponiblePresupuesto');
- if (disponiblePresupuestoElement) {
- disponiblePresupuestoElement.textContent = `$${disponible.toFixed(2)}`;
-        }
- if (sobregiroContainer) {
- sobregiroContainer.style.display = 'none';
-        }
-    } else {
-        // Se ha excedido el presupuesto
-        const disponiblePresupuestoElement = document.getElementById('disponiblePresupuesto');
- if (disponiblePresupuestoElement) disponiblePresupuestoElement.textContent = `$0.00`;
- if (sobregiroValor) sobregiroValor.textContent = `$${Math.abs(disponible).toFixed(2)}`;
- if (sobregiroContainer) sobregiroContainer.style.display = 'block';
-
-        if (!alertaPresupuestoMostrada && presupuesto.monto > 0) {
-            console.log("[ALERTA] Presupuesto excedido.");
-            Swal.fire({
-                icon: 'warning',
-                title: '¡Presupuesto Excedido!',
-                text: 'Has gastado más de lo que presupuestaste para este mes.',
-                background: 'var(--card-bg)'
-            });
-            alertaPresupuestoMostrada = true;
-        }
+    // NUEVO: Actualizar el input de monto total de la orden
+    const montoTotalOrdenDisplay = document.getElementById('montoTotalOrdenDisplay');
+    if (montoTotalOrdenDisplay) {
+        montoTotalOrdenDisplay.value = totalOrden.toFixed(2);
     }
 
-    const porcentaje = presupuesto.monto > 0 ? Math.min((totalGastadoEnPeriodo / presupuesto.monto) * 100, 100) : 0;
-    const progressBarElement = document.getElementById('progressBar');
-    if (progressBarElement) {
- progressBarElement.style.width = `${porcentaje}%`;
-    }
-    
-    const gastadoPresupuestoElement = document.getElementById('gastadoPresupuesto');
-    if (gastadoPresupuestoElement) {
- gastadoPresupuestoElement.textContent = `$${totalGastadoEnPeriodo.toFixed(2)}`;
-    }
-    
-    // Cambiar color de la barra según el porcentaje
-    if (progressBarElement) {
- progressBarElement.classList.remove('bg-success', 'bg-warning', 'bg-danger');
-    if (porcentaje < 50) {
-        progressBar.classList.add('bg-success');
-    } else if (porcentaje < 80) {
-        progressBar.classList.add('bg-warning');
-    } else {
-        progressBar.classList.add('bg-danger');
-    }
+    // NUEVO: Actualizar el input de total de items
+    const totalGastosDisplay = document.getElementById('totalGastosDisplay');
+    if (totalGastosDisplay && ordenActual) {
+        totalGastosDisplay.value = ordenActual.gastos.length;
     }
 }
 
@@ -612,47 +512,30 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// Presupuesto editable
-function cargarPresupuesto() {
-    console.log("[EVENTO] cargarPresupuesto: Cargando presupuesto desde localStorage.");
-    presupuesto = JSON.parse(localStorage.getItem('presupuesto')) || { monto: 0, periodo: 'mensual' };
-    console.log("[INFO] Presupuesto cargado/inicializado:", presupuesto);
-}
-
-function guardarPresupuesto() {
-    const nuevoMonto = parseFloat(document.getElementById('inputPresupuesto').value);
-    const nuevoPeriodo = document.getElementById('selectPeriodoPresupuesto').value;
-    
-    if (isNaN(nuevoMonto) || nuevoMonto <= 0) {
-        mostrarError('Por favor ingresa un presupuesto válido y mayor a cero.');
-        return;
-    }
-    
-    presupuesto.monto = nuevoMonto;
-    presupuesto.periodo = nuevoPeriodo;
-    alertaPresupuestoMostrada = false; // Reiniciar la alerta al cambiar el presupuesto
-    localStorage.setItem('presupuesto', JSON.stringify(presupuesto));
-}
-
 // --- NUEVAS FUNCIONES PARA GESTIÓN DE ÓRDENES ---
 
 function iniciarNuevaOrden() {
     console.log("[EVENTO] iniciarNuevaOrden: Creando estructura para nueva orden.");
-    // Crear el objeto de la orden actual
     const ahora = new Date();
     ordenActual = {
-        id: ahora.getTime().toString(),
+        id: ahora.getTime(),
         nombre: '',
-        fecha: obtenerFechaLocalISO(ahora),
+        fecha: ahora,
+        tipoGasto: '',
+        conceptoGasto: '',
+        establecimiento: '',
+        ticket: '', // Aquí puedes poner base64 o URL si tienes input de ticket
+        metodoPago: '',
+        montoTotalOrden: 0,
+        totalGastos: '0',
         gastos: []
     };
 
-    // Actualizar la UI
     document.getElementById('idOrden').textContent = ordenActual.id;
-    document.getElementById('fechaOrden').textContent = ordenActual.fecha;
+    document.getElementById('fechaOrden').textContent = obtenerFechaLocalISO(ahora);
     document.getElementById('nombreOrden').value = '';
+    // Si tienes inputs para los nuevos campos, inicialízalos aquí también
 
-    // Mostrar el área de trabajo y ocultar el botón de crear
     document.getElementById('areaDeTrabajo').style.display = 'block';
     document.getElementById('contenedorBtnNuevaOrden').style.display = 'none';
 
@@ -661,6 +544,38 @@ function iniciarNuevaOrden() {
     document.getElementById('nombreOrden').focus();
 }
 
+// Cambia la función para agregar gastos a la orden
+async function agregarFila() {
+    if (!ordenActual) {
+        mostrarError("Debes iniciar una nueva orden antes de agregar gastos.");
+        return;
+    }
+
+    const tipoGasto = document.getElementById("tipoGastoOrden")?.value || '';
+    const conceptoGasto = document.getElementById("conceptoGastoOrden")?.value || '';
+    const establecimiento = document.getElementById("establecimientoOrden")?.value || '';
+    const nombreProducto = document.getElementById("nombreProducto").value;
+
+    const gasto = {
+        tipoGasto: tipoGasto,
+        conceptoGasto: conceptoGasto,
+        establecimiento: establecimiento,
+        nombreProducto: nombreProducto,
+        unidades: parseFloat(document.getElementById("unidades").value),
+        medidaUnidad: document.getElementById("medidaUnidad").value,
+        precioUnidad: parseFloat(document.getElementById("precioUnidad").value),
+        montoTotal: parseFloat(document.getElementById("montoTotal").value),
+        fecha: obtenerFechaLocalISO()
+    };
+
+    ordenActual.gastos.push(gasto);
+    agregarFilaATabla(gasto);
+    actualizarResumen();
+    reiniciarFormulario();
+    mostrarExito("Gasto agregado correctamente");
+}
+
+// Al finalizar la orden, copia los datos generales y calcula totales
 function finalizarOrden() {
     console.log("[EVENTO] finalizarOrden: Validando y guardando la orden actual.");
     const nombre = document.getElementById('nombreOrden').value.trim();
@@ -673,105 +588,28 @@ function finalizarOrden() {
         return;
     }
 
-    // Actualizar el nombre en el objeto de la orden
     ordenActual.nombre = nombre;
+    ordenActual.tipoGasto = document.getElementById('tipoGastoOrden')?.value || '';
+    ordenActual.conceptoGasto = document.getElementById('conceptoGastoOrden')?.value || '';
+    ordenActual.establecimiento = document.getElementById('establecimientoOrden')?.value || '';
+    ordenActual.ticket = document.getElementById('ticketOrden')?.value || '';
+    ordenActual.metodoPago = document.getElementById('metodoPagoOrden')?.value || '';
+    ordenActual.montoTotalOrden = ordenActual.gastos.reduce((sum, g) => sum + (g.montoTotal || 0), 0);
+    ordenActual.totalGastos = ordenActual.gastos.length.toString();
 
-    // Agregar la orden completa al array de órdenes
     ordenes.push(ordenActual);
     guardarOrdenesLocalStorage();
 
     renderizarTablaOrdenes();
 
     mostrarExito(`Orden a nombre de '${nombre}' guardada correctamente.`);
-    
-    // Resetear la UI
     resetearVistaOrden();
 }
 
-function cancelarOrden() {
-    resetearVistaOrden();
-    console.log("[EVENTO] cancelarOrden: Orden cancelada, vista reseteada.");
-}
-
-function resetearVistaOrden() {
-    ordenActual = null;
-    console.log("[INFO] resetearVistaOrden: Limpiando la orden actual y la UI.");
-    document.getElementById('areaDeTrabajo').style.display = 'none';
-    document.getElementById('contenedorBtnNuevaOrden').style.display = 'block';
-    limpiarTablaGastosActuales();
-    actualizarResumen();
-}
-
-function renderizarTablaOrdenes() {
-    console.log("[EVENTO] renderizarTablaOrdenes: Mostrando órdenes guardadas.");
-    const cuerpoTabla = document.getElementById('cuerpoTablaOrdenes');
-    if (!cuerpoTabla) {
-        console.error("El cuerpo de la tabla de órdenes no fue encontrado.");
-        return;
-    }
-    cuerpoTabla.innerHTML = '';
-
-    // Mostrar las órdenes más recientes primero
-    const ordenesInvertidas = [...ordenes].reverse();
-
-    if (ordenesInvertidas.length === 0) {
-        cuerpoTabla.innerHTML = '<tr><td colspan="6" class="text-center">No hay órdenes guardadas.</td></tr>';
-        return;
-    }
-
-    ordenesInvertidas.forEach(orden => {
-        const totalOrden = orden.gastos.reduce((sum, gasto) => sum + parseFloat(gasto.montoTotal), 0);
-        const fila = document.createElement('tr');
-        fila.innerHTML = `
-            <td>${orden.id}</td>
-            <td>${orden.nombre}</td>
-            <td>${orden.fecha}</td>
-            <td>$${totalOrden.toFixed(2)}</td>
-            <td class="text-center">${orden.gastos.length}</td>
-            <td>
-                <button class="btn btn-info btn-sm me-1" onclick="verDetallesOrden('${orden.id}')" data-bs-toggle="tooltip" title="Ver Detalles">
-                    <i class="bi bi-eye"></i>
-                </button>
-                <button class="btn btn-danger btn-sm" onclick="eliminarOrden('${orden.id}')" data-bs-toggle="tooltip" title="Eliminar Orden">
-                    <i class="bi bi-trash"></i>
-                </button>
-            </td>
-        `;
-        cuerpoTabla.appendChild(fila);
-    });
-    
-    // Re-inicializar tooltips para los nuevos botones
-    const tooltips = document.querySelectorAll('#cuerpoTablaOrdenes [data-bs-toggle="tooltip"]');
-    tooltips.forEach(t => new bootstrap.Tooltip(t));
-}
-
-function eliminarOrden(id) {
-    console.log(`[EVENTO] eliminarOrden: Intentando eliminar orden con ID ${id}`);
-    Swal.fire({
-        title: '¿Eliminar esta orden?',
-        text: "Se eliminarán todos los gastos asociados a esta orden. Esta acción no se puede deshacer.",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar',
-        background: 'var(--card-bg)'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            ordenes = ordenes.filter(orden => orden.id !== id);
-            guardarOrdenesLocalStorage();
-            renderizarTablaOrdenes();
-            actualizarResumen(); // Actualizar el presupuesto global
-            console.log(`[ÉXITO] Orden con ID ${id} eliminada.`);
-            mostrarExito("Orden eliminada correctamente.");
-        }
-    });
-}
-
+// Cambia el renderizado de detalles para mostrar la nueva estructura de gasto
 function verDetallesOrden(id) {
     console.log(`[EVENTO] verDetallesOrden: Mostrando detalles para la orden ID ${id}`);
-    const orden = ordenes.find(o => o.id === id);
+    const orden = ordenes.find(o => o.id == id);
 
     if (!orden) {
         console.error(`No se encontró la orden con ID ${id}`);
@@ -779,38 +617,78 @@ function verDetallesOrden(id) {
         return;
     }
 
-    // Poblar la información general del modal
     document.getElementById('modalDetallesOrdenLabel').textContent = `Detalles de la Orden #${orden.id}`;
     document.getElementById('detalleOrdenId').textContent = orden.id;
     document.getElementById('detalleOrdenNombre').textContent = orden.nombre;
-    document.getElementById('detalleOrdenFecha').textContent = orden.fecha;
+    document.getElementById('detalleOrdenFecha').textContent = obtenerFechaLocalISO(new Date(orden.fecha));
 
-    // Poblar la tabla de gastos
+    // NUEVO: llenar los inputs de monto total y total de items
+    const inputMontoTotalModal = document.getElementById('montoTotalOrdenDisplayModal');
+    if (inputMontoTotalModal) {
+        // Suma todos los montoTotal de los gastos
+        const total = orden.gastos.reduce((sum, g) => sum + (parseFloat(g.montoTotal) || 0), 0);
+        inputMontoTotalModal.value = total.toFixed(2);
+    }
+    const inputTotalItems = document.getElementById('totalGastosDisplay');
+    if (inputTotalItems) {
+        inputTotalItems.value = orden.gastos.length;
+    }
+
     const cuerpoTabla = document.getElementById('cuerpoTablaDetallesOrden');
-    cuerpoTabla.innerHTML = ''; // Limpiar tabla anterior
+    cuerpoTabla.innerHTML = '';
 
     if (orden.gastos.length === 0) {
-        cuerpoTabla.innerHTML = '<tr><td colspan="8" class="text-center">Esta orden no tiene gastos registrados.</td></tr>';
+        cuerpoTabla.innerHTML = '<tr><td colspan="6" class="text-center">Esta orden no tiene gastos registrados.</td></tr>';
     } else {
         orden.gastos.forEach(gasto => {
             const fila = document.createElement('tr');
             fila.innerHTML = `
-                <td>${gasto.tipoGasto}</td>
-                <td>${gasto.conceptoGasto}</td>
-                <td>${gasto.establecimiento}</td>
-                <td>${gasto.nombreProducto}</td>
-                <td>${gasto.unidades}</td>
-                <td>${gasto.medidaUnidad}</td>
+                <td>${gasto.tipoGasto || ''}</td>
+                <td>${gasto.conceptoGasto || ''}</td>
+                <td>${gasto.establecimiento || ''}</td>
+                <td>${gasto.nombreProducto || ''}</td>
+                <td>${gasto.unidades || ''}</td>
+                <td>${gasto.medidaUnidad || ''}</td>
                 <td>$${parseFloat(gasto.precioUnidad || 0).toFixed(2)}</td>
-                <td>$${parseFloat(gasto.montoTotal).toFixed(2)}</td>
+                <td>$${parseFloat(gasto.montoTotal || 0).toFixed(2)}</td>
             `;
             cuerpoTabla.appendChild(fila);
         });
     }
 
-    // Mostrar el modal
     const modal = new bootstrap.Modal(document.getElementById('modalDetallesOrden'));
     modal.show();
+}
+
+// Función para renderizar la tabla de órdenes
+function renderizarTablaOrdenes() {
+    const tabla = document.getElementById('tablaOrdenes');
+    if (!tabla) return;
+
+    tabla.innerHTML = '';
+    if (ordenes.length === 0) {
+        tabla.innerHTML = '<tr><td colspan="8" class="text-center">No hay órdenes registradas.</td></tr>';
+        return;
+    }
+
+    ordenes.forEach(orden => {
+        const fila = document.createElement('tr');
+        fila.innerHTML = `
+            <td>${orden.id}</td>
+            <td>${orden.nombre}</td>
+            <td>${obtenerFechaLocalISO(new Date(orden.fecha))}</td>
+            <td>${orden.tipoGasto}</td>
+            <td>${orden.conceptoGasto}</td>
+            <td>${orden.establecimiento}</td>
+            <td>$${parseFloat(orden.montoTotalOrden || 0).toFixed(2)}</td>
+            <td>
+                <button class="btn btn-info btn-sm" onclick="verDetallesOrden('${orden.id}')">
+                    <i class="bi bi-eye"></i> Ver
+                </button>
+            </td>
+        `;
+        tabla.appendChild(fila);
+    });
 }
 
 // Inicializar la página cuando el DOM esté completamente cargado
@@ -818,7 +696,15 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log("[DEBUG] DOMContentLoaded se ha disparado.");
     inicializarPagina();
     console.log("[DEBUG] Intentando configurar event listeners para botones de orden.");
-    document.getElementById('btnNuevaOrden').addEventListener('click', () => { console.log("[EVENTO] Clic en 'Crear Nueva Orden'"); iniciarNuevaOrden(); /* mostrarExito("Nueva orden iniciada correctamente"); */ });
-    document.getElementById('btnFinalizarOrden').addEventListener('click', () => { console.log("[EVENTO] Clic en 'Finalizar Orden'"); finalizarOrden(); /* mostrarExito("Orden finalizada correctamente"); */ });
-    document.getElementById('btnCancelarOrden').addEventListener('click', () => { console.log("[EVENTO] Clic en 'Cancelar Orden'"); cancelarOrden(); /* mostrarExito("Orden cancelada"); */ });
+    document.getElementById('btnNuevaOrden').addEventListener('click', () => { console.log("[EVENTO] Clic en 'Crear Nueva Orden'"); iniciarNuevaOrden(); });
+    document.getElementById('btnFinalizarOrden').addEventListener('click', () => { console.log("[EVENTO] Clic en 'Finalizar Orden'"); finalizarOrden(); });
+    document.getElementById('btnCancelarOrden').addEventListener('click', () => { console.log("[EVENTO] Clic en 'Cancelar Orden'"); cancelarOrden(); });
 });
+
+function resetearVistaOrden() {
+    // Oculta el área de trabajo y muestra el botón para nueva orden
+    document.getElementById('areaDeTrabajo').style.display = 'none';
+    document.getElementById('contenedorBtnNuevaOrden').style.display = 'block';
+    limpiarTablaGastosActuales();
+    ordenActual = null;
+}
