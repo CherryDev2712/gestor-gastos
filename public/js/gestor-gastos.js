@@ -1,3 +1,11 @@
+// Función para cancelar una orden y volver a la vista inicial
+function cancelarOrden() {
+    console.log("[EVENTO] cancelarOrden: Cancelando orden actual.");
+    resetearVistaOrden();
+    mostrarExito("Orden cancelada.");
+    console.log("[DEBUG] cancelarOrden: Orden cancelada con éxito.");
+}
+
 let ordenes = [];
 let ordenActual = null; // Objeto para la orden en curso
 let modalTriggerElement = null; // Para devolver el foco después de cerrar un modal
@@ -83,11 +91,12 @@ function validarYAgregarFila() {
         };
 
         agregarFilaATabla(gasto);
-        ordenActual.gastos.push(gasto);
+ordenActual.gastos.push(gasto);
         actualizarResumen();
         // Limpiar campos de servicio
         document.getElementById("montoDeuda").value = "";
         mostrarExito("Servicio agregado correctamente");
+        console.log("[DEBUG] validarYAgregarFila: Servicio agregado con éxito.");
     } else {
         // Validación original para comida/insumo
         const nombreProducto = document.getElementById("nombreProducto").value;
@@ -130,11 +139,13 @@ async function agregarFila() {
         fecha: obtenerFechaLocalISO()
     };
 
-    ordenActual.gastos.push(gasto);
+ordenActual.gastos.push(gasto);
     agregarFilaATabla(gasto);
     actualizarResumen();
     reiniciarFormulario();
-    mostrarExito("Gasto agregado correctamente");
+    console.log("[DEBUG] reiniciarFormulario: Formulario reiniciado correctamente.");
+mostrarExito("Gasto agregado correctamente");
+    console.log("[DEBUG] agregarFila: Gasto agregado correctamente.");
 }
 
 function agregarFilaATabla(gasto) {
@@ -162,22 +173,26 @@ function agregarFilaATabla(gasto) {
             </button>
         </td>
     `;
-    tabla.appendChild(fila);
+tabla.appendChild(fila);
+    console.log("[DEBUG] agregarFilaATabla: Fila agregada correctamente a la tabla.");
 }
 
 // Función para cargar las órdenes guardadas
 function cargarOrdenes() {
-    ordenes = JSON.parse(localStorage.getItem("ordenes")) || [];
+ordenes = JSON.parse(localStorage.getItem("ordenes")) || [];
     renderizarTablaOrdenes();
+    console.log("[DEBUG] cargarOrdenes: Órdenes cargadas correctamente.");
 }
 
 // Función para guardar las órdenes en el LocalStorage
 function guardarOrdenesLocalStorage() {
-    localStorage.setItem("ordenes", JSON.stringify(ordenes));
+localStorage.setItem("ordenes", JSON.stringify(ordenes));
+    console.log("[DEBUG] guardarOrdenesLocalStorage: Órdenes guardadas correctamente en LocalStorage.");
 }
 
 function limpiarTablaGastosActuales() {
-    document.getElementById("tablaGastos").innerHTML = "";
+document.getElementById("tablaGastos").innerHTML = "";
+    console.log("[DEBUG] limpiarTablaGastosActuales: Tabla de gastos limpiada correctamente.");
 }
 
 // Función para eliminar una fila de la tabla y del LocalStorage
@@ -341,7 +356,7 @@ function mostrarError(mensaje) {
 
 // Función para mostrar éxitos con SweetAlert2
 function mostrarExito(mensaje) {
-    Swal.fire({
+Swal.fire({
         icon: 'success',
         title: 'Éxito',
         text: mensaje,
@@ -349,6 +364,7 @@ function mostrarExito(mensaje) {
         timer: 1500,
         background: 'var(--card-bg)'
     });
+    console.log(`[DEBUG] mostrarExito: ${mensaje}`);
 }
 
 // Funciones para manejar tickets
@@ -480,7 +496,8 @@ function agregarTicketATabla(ticket) {
         </td>
     `;
     
-    ticketsPreview.appendChild(newRow);
+ticketsPreview.appendChild(newRow);
+    console.log("[DEBUG] agregarTicketATabla: Ticket agregado correctamente a la tabla.");
 }
 
 function eliminarTicket(id) {
@@ -496,10 +513,11 @@ function eliminarTicket(id) {
         background: 'var(--card-bg)'
     }).then((result) => {
         if (result.isConfirmed) {
-            ticketsGuardados = ticketsGuardados.filter(ticket => ticket.id !== id);
+ticketsGuardados = ticketsGuardados.filter(ticket => ticket.id !== id);
             localStorage.setItem('ticketsGuardados', JSON.stringify(ticketsGuardados));
             cargarTickets();
             mostrarExito("Ticket eliminado correctamente");
+            console.log(`[DEBUG] eliminarTicket: Ticket con ID "+id+" eliminado correctamente."`);
         }
     });
 }
@@ -540,7 +558,8 @@ function iniciarNuevaOrden() {
     document.getElementById('contenedorBtnNuevaOrden').style.display = 'none';
 
     limpiarTablaGastosActuales();
-    actualizarResumen();
+actualizarResumen();
+    console.log("[DEBUG] actualizarResumen: Resumen actualizado correctamente.");
     document.getElementById('nombreOrden').focus();
 }
 
@@ -568,11 +587,12 @@ async function agregarFila() {
         fecha: obtenerFechaLocalISO()
     };
 
-    ordenActual.gastos.push(gasto);
+ordenActual.gastos.push(gasto);
     agregarFilaATabla(gasto);
     actualizarResumen();
     reiniciarFormulario();
     mostrarExito("Gasto agregado correctamente");
+    console.log("[DEBUG] agregarFila: Gasto agregado correctamente.");
 }
 
 // Al finalizar la orden, copia los datos generales y calcula totales
@@ -597,12 +617,13 @@ function finalizarOrden() {
     ordenActual.montoTotalOrden = ordenActual.gastos.reduce((sum, g) => sum + (g.montoTotal || 0), 0);
     ordenActual.totalGastos = ordenActual.gastos.length.toString();
 
-    ordenes.push(ordenActual);
+ordenes.push(ordenActual);
     guardarOrdenesLocalStorage();
 
     renderizarTablaOrdenes();
 
     mostrarExito(`Orden a nombre de '${nombre}' guardada correctamente.`);
+    console.log("[DEBUG] finalizarOrden: Orden finalizada y guardada correctamente.");
     resetearVistaOrden();
 }
 
@@ -629,9 +650,9 @@ function verDetallesOrden(id) {
         const total = orden.gastos.reduce((sum, g) => sum + (parseFloat(g.montoTotal) || 0), 0);
         inputMontoTotalModal.value = total.toFixed(2);
     }
-    const inputTotalItems = document.getElementById('totalGastosDisplay');
-    if (inputTotalItems) {
-        inputTotalItems.value = orden.gastos.length;
+    const inputTotalItemsModal = document.getElementById('totalGastosDisplayModal');
+    if (inputTotalItemsModal) {
+        inputTotalItemsModal.value = orden.gastos.length;
     }
 
     const cuerpoTabla = document.getElementById('cuerpoTablaDetallesOrden');
@@ -657,7 +678,8 @@ function verDetallesOrden(id) {
     }
 
     const modal = new bootstrap.Modal(document.getElementById('modalDetallesOrden'));
-    modal.show();
+modal.show();
+    console.log("[DEBUG] verDetallesOrden: Detalles de la orden mostrados correctamente.");
 }
 
 // Función para renderizar la tabla de órdenes
@@ -687,8 +709,10 @@ function renderizarTablaOrdenes() {
                 </button>
             </td>
         `;
-        tabla.appendChild(fila);
+tabla.appendChild(fila);
+        console.log("[DEBUG] renderizarTablaOrdenes: Fila de orden agregada correctamente.");
     });
+    console.log("[DEBUG] renderizarTablaOrdenes: Tabla de órdenes renderizada correctamente.");
 }
 
 // Inicializar la página cuando el DOM esté completamente cargado
@@ -706,5 +730,6 @@ function resetearVistaOrden() {
     document.getElementById('areaDeTrabajo').style.display = 'none';
     document.getElementById('contenedorBtnNuevaOrden').style.display = 'block';
     limpiarTablaGastosActuales();
-    ordenActual = null;
+ordenActual = null;
+    console.log("[DEBUG] resetearVistaOrden: Vista de la orden reseteada correctamente.");
 }
