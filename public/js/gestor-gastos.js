@@ -53,67 +53,21 @@ function validarYAgregarFila() {
 
     const conceptoGeneralOrden = document.getElementById('conceptoGastoOrden').value;
 
-    if (conceptoGeneralOrden === 'servicio') {
-        // Validación para servicio
-        const tipoGasto = document.getElementById("tipoGasto").value;
-        const establecimiento = document.getElementById("establecimiento").value;
-        const montoDeuda = document.getElementById("montoDeuda").value;
-        const fechaGasto = document.getElementById("fechaGasto").value;
+    // Validación (lo mismo para todo concepto general)
+    const nombreProducto = document.getElementById("nombreProducto").value;
+    const precioUnidad = document.getElementById("precioUnidad").value;
 
-        if (!tipoGasto) {
-            mostrarError("Selecciona el tipo de gasto");
-            return;
-        }
-        if (!establecimiento) {
-            mostrarError("Debes ingresar el establecimiento del servicio");
-            return;
-        }
-        if (!montoDeuda || parseFloat(montoDeuda) <= 0) {
-            mostrarError("El monto de la deuda debe ser mayor a cero");
-            return;
-        }
-        if (!fechaGasto) {
-            mostrarError("Debes ingresar la fecha del servicio");
-            return;
-        }
-
-        const gasto = {
-            id: Date.now().toString(),
-            tipoGasto: tipoGasto,
-            conceptoGasto: "servicio",
-            establecimiento: establecimiento,
-            nombreProducto: "Servicio",
-            unidades: "",
-            medidaUnidad: "",
-            precioUnidad: "",
-            montoTotal: montoDeuda,
-            fecha: fechaGasto,
-        };
-
-        agregarFilaATabla(gasto);
-ordenActual.gastos.push(gasto);
-        actualizarResumen();
-        // Limpiar campos de servicio
-        document.getElementById("montoDeuda").value = "";
-        mostrarExito("Servicio agregado correctamente");
-        console.log("[DEBUG] validarYAgregarFila: Servicio agregado con éxito.");
-    } else {
-        // Validación original para comida/insumo
-        const nombreProducto = document.getElementById("nombreProducto").value;
-        const precioUnidad = document.getElementById("precioUnidad").value;
-
-        if (!nombreProducto) {
-            mostrarError("Debes ingresar un nombre de producto");
-            return;
-        }
-
-        if (!precioUnidad || parseFloat(precioUnidad) <= 0) {
-            mostrarError("El precio por unidad debe ser mayor a cero");
-            return;
-        }
-
-        agregarFila();
+    if (!nombreProducto) {
+        mostrarError("Debes ingresar un nombre de producto o servicio");
+        return;
     }
+
+    if (!precioUnidad || parseFloat(precioUnidad) <= 0) {
+        mostrarError("El precio por unidad debe ser mayor a cero");
+        return;
+    }
+
+    agregarFila();
 }
 
 async function agregarFila() {
@@ -684,12 +638,12 @@ modal.show();
 
 // Función para renderizar la tabla de órdenes
 function renderizarTablaOrdenes() {
-    const tabla = document.getElementById('tablaOrdenes');
-    if (!tabla) return;
+    const cuerpoTabla = document.getElementById('cuerpoTablaOrdenes');
+    if (!cuerpoTabla) return;
 
-    tabla.innerHTML = '';
+    cuerpoTabla.innerHTML = '';
     if (ordenes.length === 0) {
-        tabla.innerHTML = '<tr><td colspan="8" class="text-center">No hay órdenes registradas.</td></tr>';
+        cuerpoTabla.innerHTML = '<tr><td colspan="6" class="text-center">No hay órdenes registradas.</td></tr>';
         return;
     }
 
@@ -699,20 +653,16 @@ function renderizarTablaOrdenes() {
             <td>${orden.id}</td>
             <td>${orden.nombre}</td>
             <td>${obtenerFechaLocalISO(new Date(orden.fecha))}</td>
-            <td>${orden.tipoGasto}</td>
-            <td>${orden.conceptoGasto}</td>
-            <td>${orden.establecimiento}</td>
             <td>$${parseFloat(orden.montoTotalOrden || 0).toFixed(2)}</td>
+            <td>${orden.totalGastos || orden.gastos.length}</td>
             <td>
                 <button class="btn btn-info btn-sm" onclick="verDetallesOrden('${orden.id}')">
                     <i class="bi bi-eye"></i> Ver
                 </button>
             </td>
         `;
-tabla.appendChild(fila);
-        console.log("[DEBUG] renderizarTablaOrdenes: Fila de orden agregada correctamente.");
+        cuerpoTabla.appendChild(fila);
     });
-    console.log("[DEBUG] renderizarTablaOrdenes: Tabla de órdenes renderizada correctamente.");
 }
 
 // Inicializar la página cuando el DOM esté completamente cargado

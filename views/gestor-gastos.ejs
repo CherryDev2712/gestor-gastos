@@ -169,7 +169,7 @@
                         <thead class="table-primary">
                             <tr>
                                 <th>ID de Orden</th>
-                                <th>Nombre</th>
+                                <th>Nombre del creador/th>
                                 <th>Fecha</th>
                                 <th>Total Gastado</th>
                                 <th>Nº de Artículos</th>
@@ -193,42 +193,57 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
-                <div class="mb-4 p-3 bg-dark rounded">
-                    <p class="mb-1"><strong>ID de Orden:</strong> <span id="detalleOrdenId"></span></p>
-                    <p class="mb-1"><strong>A nombre de:</strong> <span id="detalleOrdenNombre"></span></p>
-                    <p class="mb-1"><strong>Fecha de la Orden:</strong> <span id="detalleOrdenFecha"></span></p>
-                        <div class="col-md-4">
-                            <label for="montoTotalOrdenDisplayModal" class="form-label form-label-sm">Monto Total de la Orden:</label>
-                            <input type="text" class="form-control form-control-sm fw-bold" id="montoTotalOrdenDisplayModal" readonly>
+                    <div class="card bg-dark mb-4 p-3 rounded">
+                        <h5 class="mb-3 text-info"><i class="bi bi-receipt"></i> Información de la Orden</h5>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">ID de Orden:</label>
+                                <div class="form-control-plaintext" id="detalleOrdenId"></div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">A nombre de:</label>
+                                <div class="form-control-plaintext" id="detalleOrdenNombre"></div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Fecha de la Orden:</label>
+                                <div class="form-control-plaintext" id="detalleOrdenFecha"></div>
+                            </div>
                         </div>
-                        <div class="col-md-4">
-                            <label for="totalGastosDisplayModal" class="form-label form-label-sm">Total de Items:</label>
-                            <input type="text" class="form-control form-control-sm" id="totalGastosDisplayModal" readonly>
-                        </div>
-                        <div class="col-md-4">
-                            <!-- Se deja un espacio o se puede añadir otro campo si es necesario -->
+                        <hr>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="montoTotalOrdenDisplayModal" class="form-label">Monto Total:</label>
+                                <input type="text" class="form-control fw-bold" id="montoTotalOrdenDisplayModal" readonly>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="totalGastosDisplayModal" class="form-label">Total de Items:</label>
+                                <input type="text" class="form-control" id="totalGastosDisplayModal" readonly>
+                            </div>
+                            <div class="col-md-4">
+                                <!-- Espacio para agregar otro campo si lo necesitas -->
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="table-responsive">
-                    <h2 class="detallesTitle">Gastos</h2>
-                    <table class="table table-bordered">
-                        <thead class="table-primary">
-                            <tr>
-                                <th>Tipo Gasto</th>
-                                <th>Concepto</th>
-                                <th>Establecimiento</th>
-                                <th>Nombre</th>
-                                <th>Unidades</th>
-                                <th>Medida</th>
-                                <th>Precio Unitario</th>
-                                <th>Monto Total</th>
-                            </tr>
-                        </thead>
-                        <tbody id="cuerpoTablaDetallesOrden">
-                            <!-- Los gastos de la orden se agregarán aquí -->
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <h5 class="mb-3 text-info"><i class="bi bi-list-ul"></i> Detalle de Gastos</h5>
+                        <table class="table table-bordered">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th>Tipo Gasto</th>
+                                    <th>Concepto</th>
+                                    <th>Establecimiento</th>
+                                    <th>Nombre</th>
+                                    <th>Unidades</th>
+                                    <th>Medida</th>
+                                    <th>Precio Unitario</th>
+                                    <th>Monto Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cuerpoTablaDetallesOrden">
+                                <!-- Los gastos de la orden se agregarán aquí -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -238,7 +253,6 @@
             </div>
             </div>
         </div>
-        <hr>
         <!-- Script de Bootstrap -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script src="/js/gestor-gastos.js"></script>

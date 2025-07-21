@@ -23,7 +23,7 @@ body {
 .main-content {
   margin-left: var(--sidebar-width);
   padding: 20px;
-  padding-top: calc(var(--navbar-height) + 20px);
+  padding-top: none;
   min-height: 100vh;
   transition: margin-left 0.3s ease;
 }
@@ -86,6 +86,7 @@ body {
 
 .table td, .table th {
   vertical-align: middle;
+  color: #fff;
   border: none;
 }
 
