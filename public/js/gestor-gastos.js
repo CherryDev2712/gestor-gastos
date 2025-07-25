@@ -139,10 +139,10 @@ ordenes = JSON.parse(localStorage.getItem("ordenes")) || [];
 }
 
 // Función para guardar las órdenes en el LocalStorage
-function guardarOrdenesLocalStorage() {
-localStorage.setItem("ordenes", JSON.stringify(ordenes));
-    console.log("[DEBUG] guardarOrdenesLocalStorage: Órdenes guardadas correctamente en LocalStorage.");
-}
+// function guardarOrdenesLocalStorage() {
+// localStorage.setItem("ordenes", JSON.stringify(ordenes));
+//     console.log("[DEBUG] guardarOrdenesLocalStorage: Órdenes guardadas correctamente en LocalStorage.");
+// }
 
 function limpiarTablaGastosActuales() {
 document.getElementById("tablaGastos").innerHTML = "";
@@ -548,7 +548,7 @@ ordenActual.gastos.push(gasto);
 }
 
 // Al finalizar la orden, copia los datos generales y calcula totales
-function finalizarOrden() {
+async function finalizarOrden() {
     console.log("[EVENTO] finalizarOrden: Validando y guardando la orden actual.");
     const nombre = document.getElementById('nombreOrden').value.trim();
     if (!nombre) {
@@ -569,18 +569,29 @@ function finalizarOrden() {
     ordenActual.montoTotalOrden = ordenActual.gastos.reduce((sum, g) => sum + (g.montoTotal || 0), 0);
     ordenActual.totalGastos = ordenActual.gastos.length.toString();
 
-ordenes.push(ordenActual);
-    guardarOrdenesLocalStorage();
-
-    renderizarTablaOrdenes();
-
-    mostrarExito(`Orden a nombre de '${nombre}' guardada correctamente.`);
-    console.log("[DEBUG] finalizarOrden: Orden finalizada y guardada correctamente.");
-    resetearVistaOrden();
+    // Solo guardar en la base de datos
+    try {
+        const res = await fetch('/api/ordenes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(ordenActual)
+        });
+        const data = await res.json();
+        if (data.ok) {
+            mostrarExito(`Orden a nombre de '${nombre}' guardada correctamente.`);
+            resetearVistaOrden();
+            cargarOrdenes(); // Refresca la tabla desde la base de datos
+        } else {
+            mostrarError("Error al guardar la orden.");
+        }
+    } catch (err) {
+        mostrarError("Error de conexión al guardar la orden.");
+        console.error(err);
+    }
 }
 
 // Cambia el renderizado de detalles para mostrar la nueva estructura de gasto
-function verDetallesOrden(id) {
+async function verDetallesOrden(id) {
     console.log(`[EVENTO] verDetallesOrden: Mostrando detalles para la orden ID ${id}`);
     const orden = ordenes.find(o => o.id == id);
 
@@ -589,6 +600,19 @@ function verDetallesOrden(id) {
         mostrarError("No se pudo encontrar la orden seleccionada.");
         return;
     }
+
+    // Cargar gastos desde el backend si no existen en la orden
+    let gastos = [];
+    try {
+        const res = await fetch(`/api/ordenes/${id}/gastos`);
+        gastos = await res.json();
+    } catch (err) {
+        mostrarError("No se pudieron cargar los gastos de la orden.");
+        console.error(err);
+    }
+
+    // Asegúrate de que gastos sea un array
+    if (!Array.isArray(gastos)) gastos = [];
 
     document.getElementById('modalDetallesOrdenLabel').textContent = `Detalles de la Orden #${orden.id}`;
     document.getElementById('detalleOrdenId').textContent = orden.id;
@@ -599,21 +623,21 @@ function verDetallesOrden(id) {
     const inputMontoTotalModal = document.getElementById('montoTotalOrdenDisplayModal');
     if (inputMontoTotalModal) {
         // Suma todos los montoTotal de los gastos
-        const total = orden.gastos.reduce((sum, g) => sum + (parseFloat(g.montoTotal) || 0), 0);
+        const total = gastos.reduce((sum, g) => sum + (parseFloat(g.montoTotal) || 0), 0);
         inputMontoTotalModal.value = total.toFixed(2);
     }
     const inputTotalItemsModal = document.getElementById('totalGastosDisplayModal');
     if (inputTotalItemsModal) {
-        inputTotalItemsModal.value = orden.gastos.length;
+        inputTotalItemsModal.value = gastos.length;
     }
 
     const cuerpoTabla = document.getElementById('cuerpoTablaDetallesOrden');
     cuerpoTabla.innerHTML = '';
 
-    if (orden.gastos.length === 0) {
+    if (gastos.length === 0) {
         cuerpoTabla.innerHTML = '<tr><td colspan="6" class="text-center">Esta orden no tiene gastos registrados.</td></tr>';
     } else {
-        orden.gastos.forEach(gasto => {
+        gastos.forEach(gasto => {
             const fila = document.createElement('tr');
             fila.innerHTML = `
                 <td>${gasto.tipoGasto || ''}</td>
@@ -630,7 +654,7 @@ function verDetallesOrden(id) {
     }
 
     const modal = new bootstrap.Modal(document.getElementById('modalDetallesOrden'));
-modal.show();
+    modal.show();
     console.log("[DEBUG] verDetallesOrden: Detalles de la orden mostrados correctamente.");
 }
 
@@ -681,3 +705,14 @@ function resetearVistaOrden() {
 ordenActual = null;
     console.log("[DEBUG] resetearVistaOrden: Vista de la orden reseteada correctamente.");
 }
+
+fetch('/api/ordenes')
+    .then(res => res.json())
+    .then(data => {
+        ordenes = data;
+        renderizarTablaOrdenes();
+    })
+    .catch(err => {
+        mostrarError("Error al cargar las órdenes.");
+        console.error(err);
+    });
