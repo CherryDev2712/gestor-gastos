@@ -484,8 +484,6 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// --- NUEVAS FUNCIONES PARA GESTIÓN DE ÓRDENES ---
-
 function iniciarNuevaOrden() {
     console.log("[EVENTO] iniciarNuevaOrden: Creando estructura para nueva orden.");
     const ahora = new Date();
