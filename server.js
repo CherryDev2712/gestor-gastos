@@ -105,7 +105,24 @@ app.get('/api/ordenes/:id/gastos', async (req, res) => {
   }
 });
 
-// Aquí puedes agregar más endpoints para editar/eliminar órdenes y gastos
+// Eliminar una orden y sus gastos
+app.delete('/api/ordenes/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+    // Elimina los gastos asociados primero
+    await db.run('DELETE FROM gastos WHERE ordenId = ?', [id]);
+    // Luego elimina la orden
+    const result = await db.run('DELETE FROM ordenes WHERE id = ?', [id]);
+    if (result.changes > 0) {
+      res.json({ ok: true });
+    } else {
+      res.status(404).json({ ok: false, error: 'Orden no encontrada' });
+    }
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 
 // Rutas de vistas (mantén tu router si lo necesitas)
 import router from './routes/routes.js';

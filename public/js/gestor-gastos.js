@@ -716,3 +716,50 @@ fetch('/api/ordenes')
         mostrarError("Error al cargar las órdenes.");
         console.error(err);
     });
+
+async function eliminarOrden(id) {
+    Swal.fire({
+        title: '¿Eliminar orden?',
+        text: "Esta acción eliminará la orden y todos sus gastos.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        background: 'var(--card-bg)'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                const res = await fetch(`/api/ordenes/${id}`, { method: 'DELETE' });
+                if (!res.ok) {
+                    mostrarError("No se pudo eliminar la orden (no encontrada).");
+                    return;
+                }
+                const data = await res.json();
+                if (data.ok) {
+                    mostrarExito("Orden eliminada correctamente");
+                    cargarOrdenes();
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('modalDetallesOrden'));
+                    if (modal) modal.hide();
+                } else {
+                    mostrarError("No se pudo eliminar la orden.");
+                }
+            } catch (err) {
+                mostrarError("Error al eliminar la orden.");
+                console.error(err);
+            }
+        }
+    });
+}
+
+// Event listener para el botón de eliminar en el modal
+document.addEventListener('DOMContentLoaded', function() {
+    const btnEliminar = document.getElementById('btnEliminarOrdenModal');
+    if (btnEliminar) {
+        btnEliminar.addEventListener('click', function() {
+            const id = document.getElementById('detalleOrdenId').textContent;
+            eliminarOrden(id);
+        });
+    }
+});
